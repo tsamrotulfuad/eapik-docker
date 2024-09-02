@@ -1,0 +1,48 @@
+services:
+  app:
+    build:
+      args:
+        user: fuad
+        uid: 1000
+      context: ./
+      dockerfile: Dockerfile
+    image: eapik
+    container_name: eapik-app
+    restart: unless-stopped
+    working_dir: /var/www/
+    volumes:
+      - ./:/var/www
+    networks:
+      - eapik-network
+
+  db:
+    image: mysql:8.0
+    container_name: eapik-db
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_DATABASE: eapik
+      MYSQL_ROOT_PASSWORD: password
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - ./mysql:/docker-entrypoint-initdb.d
+    networks:
+      - eapik-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: eapik-nginx
+    restart: unless-stopped
+    ports:
+      - 8000:80
+    volumes:
+      - ./:/var/www
+      - ./nginx:/etc/nginx/conf.d/
+    networks:
+      - eapik-network
+
+networks:
+  eapik-network:
+    driver: bridge
